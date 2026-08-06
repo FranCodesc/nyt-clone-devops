@@ -36,3 +36,23 @@ nyt-clone-devops/
 ├── .github/workflows/
 └── README.md
 ```
+
+## Comandi Docker usati
+
+Build delle immagini (fase di produzione, usata anche dalla pipeline CI):
+```
+docker build -t nyt-clone-client ./client
+docker build -t nyt-clone-server ./server
+```
+
+Avvio dell'ambiente di sviluppo locale (client + server insieme, con hot-reload):
+```
+docker compose up --build
+```
+
+Il flag `--build` forza la ricostruzione delle immagini secondo `docker-compose.yml`, evitando che Compose riusi immagini con lo stesso nome costruite in precedenza a mano.
+
+Arresto dell'ambiente:
+```
+docker compose down
+```

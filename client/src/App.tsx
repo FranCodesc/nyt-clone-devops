@@ -6,7 +6,7 @@ import { Footer } from "./components/Footer";
 import { Dashboard } from "./components/Dashboard";
 
 //testing pipeline
-const test = 1
+// const test = 1
 
 function App() {
   return (

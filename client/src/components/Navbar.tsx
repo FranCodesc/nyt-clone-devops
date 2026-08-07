@@ -23,6 +23,24 @@ export function Navbar() {
         <div className="hidden lg:flex w-1/4 flex-col pt-6">
           <span className="text-sm font-light">{date}</span>
           <span className="text-sm font-light">Today's Paper</span>
+          <button
+                  onClick={() => {
+                    throw new Error("Test error - DevOps monitoring verification");
+                  }}
+                  style={{
+                    fontSize: "16px",
+                    padding: "10px 20px",
+                    margin: "20px auto",
+                    display: "block",
+                    backgroundColor: "red",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  TEST ERROR TRACKING
+                </button>
         </div>
         <div></div>
         <div

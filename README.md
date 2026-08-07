@@ -25,18 +25,23 @@ Il client comunica esclusivamente con il proprio server, mai direttamente con NY
 
 ## Ambienti
 
-| Ambiente | Componente | Infrastruttura | Trigger |
-|---|---|---|---|
-| Development | client + server | Docker Compose, locale | manuale |
-| Staging | client | Netlify Deploy Preview | push su branch ≠ main / apertura PR |
-| Production | client | Netlify | push su main |
-| Production | server | Render | push su main |
+| Ambiente | Componente | Infrastruttura | Trigger | URL |
+|---|---|---|---|---|
+| Development | client + server | Docker Compose, locale | manuale | `http://localhost:5173` (client), `http://localhost:3000` (server) |
+| Staging | client | Netlify Deploy Preview | apertura PR / push su branch ≠ main | generato automaticamente per ogni PR |
+| Production | client | Netlify | push su `main` che supera la CI | https://nyt-clone-francodesc.netlify.app |
+| Production | server | Render | push su `main` che supera la CI | https://nyt-clone-server.onrender.com |
 
 Nota: il server non dispone di un ambiente di staging isolato (funzionalità a pagamento su Render). Gli ambienti di staging del client puntano quindi al server di produzione.
 
 ## Stack CI/CD
-- **CI:** GitHub Actions — nativo su GitHub, nessuna dipendenza da servizi terzi aggiuntivi.
-- **CD:** Netlify (client) + Render (server) — entrambi con deploy automatico via integrazione Git su push a `main`.
+
+Pipeline unica in `.github/workflows/ci.yml`, eseguita su ogni push e pull request verso `main`:
+
+- **CI (`client`, `server`):** installazione dipendenze, lint (ESLint) e build dell'immagine Docker, separatamente per client e server. Se il lint fallisce, il job si interrompe e la pipeline viene segnalata come fallita, bloccando gli step successivi.
+- **CD (`deploy-client`, `deploy-server`):** partono solo se il rispettivo job CI è andato a buon fine, e solo su push reali a `main` (non su pull request). Chiamano i Deploy Hook di Netlify e Render, che innescano il deploy in produzione.
+
+Il deploy automatico nativo via integrazione Git di Netlify e Render è stato disattivato (branch di produzione "locked"/Auto-Deploy off): l'unico modo per pubblicare in produzione è quindi superare la pipeline CI su GitHub Actions.
 
 ## Tech stack
 
@@ -73,6 +78,7 @@ nyt-clone-devops/
 │   ├── src/
 │   │   ├── components/     # ArticleCard, Categories, Dashboard, Footer, MarketData, MobileMenu, Navbar, NewsArea
 │   │   ├── data/            # categorie di navigazione
+│   │   ├── hooks/            # useAuth
 │   │   ├── services/        # authService, bookmarkService, firebase, finnhubApi, nytApi
 │   │   ├── store/            # Redux slice + store
 │   │   ├── App.tsx
@@ -118,7 +124,7 @@ service cloud.firestore {
 
 **Chiavi NYT e Finnhub:** restano esclusivamente lato server, lette da variabili d'ambiente (`NYT_API_KEY`, `FINNHUB_API_KEY`), mai esposte al client.
 
-**CORS:** il server accetta richieste solo dalle origin elencate nella variabile d'ambiente `CLIENT_URL` (default `http://localhost:5173` in sviluppo; in produzione va impostata con l'URL pubblico del client). Vedi `server/.env.example`.
+**CORS:** il server accetta richieste solo dalle origin elencate nella variabile d'ambiente `CLIENT_URL` (default `http://localhost:5173` in sviluppo; in produzione impostata con l'URL pubblico del client su Netlify). Vedi `server/.env.example`.
 
 ## Chiavi API necessarie
 

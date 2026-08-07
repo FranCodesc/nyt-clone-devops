@@ -8,7 +8,7 @@ NYT Clone è un'applicazione full-stack che replica l'homepage del New York Time
 
 ## Funzionalità principali
 - Notizie in tempo reale da 8+ sezioni del NYT (U.S., World, Business, Arts, Lifestyle, Opinion, Science, Technology, Travel), tramite la NYT Top Stories API
-- Widget quotazioni di borsa in tempo reale (AAPL, TSLA) via Finnhub API
+- Widget quotazioni di borsa in tempo reale (AAPL, MSFT, GOOGL) via Finnhub API
 - Login con Google tramite Firebase Authentication
 - Bookmark: salvataggio e rimozione articoli, persistenti per utente su Firebase Firestore
 - Dashboard personale con gli articoli salvati

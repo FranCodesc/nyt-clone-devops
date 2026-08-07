@@ -4,13 +4,12 @@ import { fetchNewsThunk } from "../store/sliceNews";
 import { type AppDispatch, type RootState } from "../store/store";
 import { type Article } from "../services/nytApi";
 import { ArticleCard } from "./ArticleCard";
-import { onAuthStateChanged } from "firebase/auth";
-import { useState } from "react";
-import { auth } from "../services/firebase";
+import { useAuth } from "../hooks/useAuth";
 
 export function NewsArea() {
   const dispatch = useDispatch<AppDispatch>();
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const { user } = useAuth();
+  const userId = user?.uid;
 
   const articles = useSelector((state: RootState) => state.news.articles);
   const loading = useSelector((state: RootState) => state.news.loading);
@@ -21,13 +20,6 @@ export function NewsArea() {
   useEffect(() => {
     dispatch(fetchNewsThunk(selectedSection));
   }, [selectedSection, dispatch]);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUserId(user?.uid);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const leftArticles = articles.slice(0, 15);
   const mainArticles = articles.slice(15, 22);

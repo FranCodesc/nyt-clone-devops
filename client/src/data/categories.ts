@@ -207,34 +207,6 @@ export const categories: Category[] = [
       },
     ],
   },
-  // {
-  //   label: "Sports",
-  //   section: "sports",
-  //   subsections: [
-  //     {
-  //       label: "Baseball",
-  //       url: "https://www.nytimes.com/section/sports/baseball",
-  //     },
-  //     {
-  //       label: "Basketball",
-  //       url: "https://www.nytimes.com/section/sports/basketball",
-  //     },
-  //     {
-  //       label: "Football",
-  //       url: "https://www.nytimes.com/section/sports/football",
-  //     },
-  //     { label: "Soccer", url: "https://www.nytimes.com/section/sports/soccer" },
-  //     { label: "Tennis", url: "https://www.nytimes.com/section/sports/tennis" },
-  //     { label: "Golf", url: "https://www.nytimes.com/section/sports/golf" },
-  //   ],
-  //   newsletters: [
-  //     {
-  //       title: "Sports",
-  //       description: "Daily sports news and analysis.",
-  //       url: "https://www.nytimes.com/newsletters/sports",
-  //     },
-  //   ],
-  // },
   {
     label: "Technology",
     section: "technology",

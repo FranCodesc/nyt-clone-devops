@@ -4,9 +4,7 @@ import { setSelectedSection } from "../store/sliceNews";
 import { Categories } from "./Categories";
 import NytLogo from "./NytLogo";
 import { Link } from "react-router-dom";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { useState, useEffect } from "react";
-import { auth } from "../services/firebase";
+import { useAuth } from "../hooks/useAuth";
 
 export function Navbar() {
   const date = new Date().toLocaleDateString("en-US", {
@@ -17,16 +15,7 @@ export function Navbar() {
   });
 
   const dispatch = useDispatch();
-
-  // Teniamo l'intero oggetto User (non solo l'uid)
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { user } = useAuth();
 
   return (
     <div className="flex flex-col items-center gap-3">

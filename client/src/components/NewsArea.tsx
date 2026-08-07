@@ -1,7 +1,8 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { fetchNewsThunk } from "../store/sliceNews";
-import { type AppDispatch } from "../store/store";
+import { type AppDispatch, type RootState } from "../store/store";
+import { type Article } from "../services/nytApi";
 import { ArticleCard } from "./ArticleCard";
 import { onAuthStateChanged } from "firebase/auth";
 import { useState } from "react";
@@ -11,15 +12,15 @@ export function NewsArea() {
   const dispatch = useDispatch<AppDispatch>();
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
-  const articles = useSelector((state: any) => state.news.articles);
-  const loading = useSelector((state: any) => state.news.loading);
+  const articles = useSelector((state: RootState) => state.news.articles);
+  const loading = useSelector((state: RootState) => state.news.loading);
   const selectedSection = useSelector(
-    (state: any) => state.news.selectedSection,
+    (state: RootState) => state.news.selectedSection,
   );
 
   useEffect(() => {
     dispatch(fetchNewsThunk(selectedSection));
-  }, [selectedSection]);
+  }, [selectedSection, dispatch]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -72,7 +73,7 @@ export function NewsArea() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_2fr_1fr] gap-10">
       <div className="flex flex-col gap-6">
-        {leftArticles.map((article: any) => (
+        {leftArticles.map((article: Article) => (
           <ArticleCard
             key={article.url}
             title={article.title}
@@ -86,7 +87,7 @@ export function NewsArea() {
       </div>
 
       <div className="flex flex-col gap-8">
-        {mainArticles.map((article: any) => (
+        {mainArticles.map((article: Article) => (
           <ArticleCard
             key={article.url}
             title={article.title}
@@ -100,7 +101,7 @@ export function NewsArea() {
       </div>
 
       <div className="hidden lg:flex flex-col border-l border-zinc-300 pl-4 gap-2">
-        {rightArticles.map((article: any) => (
+        {rightArticles.map((article: Article) => (
           <ArticleCard
             key={article.url}
             title={article.title}

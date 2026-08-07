@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchNews } from "../services/nytApi";
+import { fetchNews, type Article } from "../services/nytApi";
 
 export const fetchNewsThunk = createAsyncThunk(
   "news/fetchNews",
@@ -12,7 +12,7 @@ export const fetchNewsThunk = createAsyncThunk(
 
 //type
 interface NewsState {
-  articles: any[];
+  articles: Article[];
   selectedSection: string;
   loading: boolean;
   error: string | null;

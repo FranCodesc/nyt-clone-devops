@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
-import { fetchMarket } from "../services/finnhubApi";
+import { fetchMarket, type MarketQuote } from "../services/finnhubApi";
+
+const symbols = ["AAPL", "MSFT", "GOOGL"];
 
 export function MarketData() {
-  const symbols = ["AAPL", "MSFT", "GOOGL"];
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [market, setMarket] = useState<any>(null);
+  const [market, setMarket] = useState<MarketQuote | null>(null);
 
   useEffect(() => {
-    setMarket(null);
-    fetchMarket(symbols[currentIndex]).then((data) => setMarket(data));
+    let cancelled = false;
+    fetchMarket(symbols[currentIndex]).then((data) => {
+      if (!cancelled) setMarket(data);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [currentIndex]);
 
   useEffect(() => {

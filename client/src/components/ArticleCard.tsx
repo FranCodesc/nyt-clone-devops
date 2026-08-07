@@ -10,6 +10,22 @@ interface ArticleCardProps {
   userId?: string;
 }
 
+interface BookmarkButtonProps {
+  bookmarked: boolean;
+  onToggle: (e: React.MouseEvent) => void;
+}
+
+function BookmarkButton({ bookmarked, onToggle }: BookmarkButtonProps) {
+  return (
+    <button
+      onClick={onToggle}
+      className="absolute top-0 left-2 bg-zinc-200 border border-zinc-400 p-0.5 hover:bg-zinc-100 cursor-pointer"
+    >
+      {bookmarked ? "★" : "☆"}
+    </button>
+  );
+}
+
 export function ArticleCard({
   title,
   abstract,
@@ -44,20 +60,11 @@ export function ArticleCard({
     }
   }
 
-  const BookmarkIcon = () => (
-    <button
-      onClick={toggleBookmark}
-      className="absolute top-0 left-2 bg-zinc-200 border border-zinc-400 p-0.5 hover:bg-zinc-100 cursor-pointer"
-    >
-      {bookmarked ? "★" : "☆"}  
-    </button>
-  );
-
   if (variant === "text") {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer">
-        <div className={`relative flex flex-col gap-1`}>
-          {userId && <BookmarkIcon />}
+        <div className="relative flex flex-col gap-1">
+          {userId && <BookmarkButton bookmarked={bookmarked} onToggle={toggleBookmark} />}
           <h2 className={`font-bold text-base hover:text-zinc-500 border-t border-zinc-300 pt-2 ${userId ? "mt-2 pt-5" : ""}`}>{title}</h2>
           <p className="text-sm font-light">{abstract}</p>
         </div>
@@ -69,7 +76,7 @@ export function ArticleCard({
     return (
       <a href={url} target="_blank" rel="noopener noreferrer">
         <div className="relative flex flex-col gap-1">
-          {userId && <BookmarkIcon />}
+          {userId && <BookmarkButton bookmarked={bookmarked} onToggle={toggleBookmark} />}
           <img
             src={multimedia?.[0]?.url}
             alt={title}
@@ -84,7 +91,7 @@ export function ArticleCard({
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
       <div className={`relative flex flex-col gap-1 border-b border-zinc-300 pb-5 ${userId ? "pt-2" : ""} `}>
-        {userId && <BookmarkIcon />}
+        {userId && <BookmarkButton bookmarked={bookmarked} onToggle={toggleBookmark} />}
         <img
           src={multimedia?.[0]?.url}
           alt={title}

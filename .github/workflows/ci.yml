@@ -66,3 +66,21 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t nyt-clone-server:ci ./server
+
+  deploy-client:
+    name: Deploy Client to Netlify
+    needs: client
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Netlify deploy hook
+        run: curl -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"
+
+  deploy-server:
+    name: Deploy Server to Render
+    needs: server
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

@@ -5,6 +5,9 @@ import { NewsArea } from "./components/NewsArea";
 import { Footer } from "./components/Footer";
 import { Dashboard } from "./components/Dashboard";
 
+//testing pipeline
+const test = 1
+
 function App() {
   return (
     <div className="max-w-300 w-full mx-auto flex flex-col gap-8 pb-12 px-6">

@@ -88,6 +88,14 @@ jobs:
         working-directory: client
         run: npm ci
 
+      - name: Debug env (temporary)
+        working-directory: client
+        run: |
+          echo "VITE_FIREBASE_API_KEY length: ${#VITE_FIREBASE_API_KEY}"
+          echo "VITE_FIREBASE_API_KEY prefix: ${VITE_FIREBASE_API_KEY:0:6}"
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+
       - name: Build
         working-directory: client
         run: npm run build

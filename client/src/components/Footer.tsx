@@ -23,9 +23,19 @@ export function Footer() {
         onClick={() => {
           throw new Error("Test error - DevOps monitoring verification");
         }}
-        style={{ fontSize: "10px", opacity: 0.3 }}
+        style={{
+          fontSize: "16px",
+          padding: "10px 20px",
+          margin: "20px auto",
+          display: "block",
+          backgroundColor: "red",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
       >
-        Test error tracking
+        TEST ERROR TRACKING
       </button>
     </div>
   );

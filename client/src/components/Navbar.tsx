@@ -22,7 +22,7 @@ export function Navbar() {
       <div className="flex flex-col lg:flex-row items-center justify-between w-full mb-2">
         <div className="hidden lg:flex w-1/4 flex-col pt-6">
           <span className="text-sm font-light">{date}</span>
-          <span className="text-sm font-light">Today's Paperaaaaaa</span>
+          <span className="text-sm font-light">Today's Paper test</span>
         </div>
         <div></div>
         <div

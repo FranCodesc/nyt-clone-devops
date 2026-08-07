@@ -88,14 +88,6 @@ jobs:
         working-directory: client
         run: npm ci
 
-      - name: Debug env (temporary)
-        working-directory: client
-        run: |
-          echo "VITE_FIREBASE_API_KEY length: ${#VITE_FIREBASE_API_KEY}"
-          echo "VITE_FIREBASE_API_KEY prefix: ${VITE_FIREBASE_API_KEY:0:6}"
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-
       - name: Build
         working-directory: client
         run: npm run build
@@ -111,7 +103,7 @@ jobs:
 
       - name: Deploy to Netlify
         working-directory: client
-        run: npx netlify-cli deploy --prod --dir=dist --site=${{ secrets.NETLIFY_SITE_ID }} --auth=${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: npx netlify-cli deploy --prod --no-build --dir=dist --site=${{ secrets.NETLIFY_SITE_ID }} --auth=${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   deploy-server:
     name: Deploy Server to Render

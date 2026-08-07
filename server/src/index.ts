@@ -9,7 +9,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: ["http://localhost:5173", "https://gleaming-banoffee-3e9705.netlify.app"] }));
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.use("/api/news", newsRouter);

@@ -28,20 +28,20 @@ Il client comunica esclusivamente con il proprio server, mai direttamente con NY
 | Ambiente | Componente | Infrastruttura | Trigger | URL |
 |---|---|---|---|---|
 | Development | client + server | Docker Compose, locale | manuale | `http://localhost:5173` (client), `http://localhost:3000` (server) |
-| Staging | client | Netlify Deploy Preview | apertura PR / push su branch ≠ main | generato automaticamente per ogni PR |
 | Production | client | Netlify | push su `main` che supera la CI | https://nyt-clone-francodesc.netlify.app |
 | Production | server | Render | push su `main` che supera la CI | https://nyt-clone-server.onrender.com |
 
-Nota: il server non dispone di un ambiente di staging isolato (funzionalità a pagamento su Render). Gli ambienti di staging del client puntano quindi al server di produzione.
+Nota: non è presente un ambiente di staging isolato. Inizialmente il client usava le Deploy Preview automatiche di Netlify per branch/PR, ma da quando il deploy è stato spostato interamente dentro la pipeline GitHub Actions (vedi sotto), quel meccanismo non è più collegato: Netlify non è più agganciato al repository Git, riceve solo i file già pronti dalla pipeline. Il server non ha mai avuto un ambiente di staging isolato (funzionalità a pagamento su Render).
 
 ## Stack CI/CD
 
-Pipeline unica in `.github/workflows/ci.yml`, eseguita su ogni push e pull request verso `main`:
+Pipeline unica in `.github/workflows/ci.yml`, eseguita su ogni push e pull request verso `main`, con 4 job:
 
-- **CI (`client`, `server`):** installazione dipendenze, lint (ESLint) e build dell'immagine Docker, separatamente per client e server. Se il lint fallisce, il job si interrompe e la pipeline viene segnalata come fallita, bloccando gli step successivi.
-- **CD (`deploy-client`, `deploy-server`):** partono solo se il rispettivo job CI è andato a buon fine, e solo su push reali a `main` (non su pull request). Chiamano i Deploy Hook di Netlify e Render, che innescano il deploy in produzione.
+- **`client` / `server` (CI):** installazione dipendenze, lint (ESLint) e build dell'immagine Docker, separatamente per client e server. Se il lint fallisce, il job si interrompe e la pipeline viene segnalata come fallita, bloccando gli step successivi.
+- **`deploy-client` (CD):** parte solo se il job `client` è andato a buon fine, e solo su push reali a `main` (non su pull request). Builda il client con Vite usando le variabili d'ambiente da GitHub Secrets, poi pubblica la cartella `dist/` direttamente su Netlify tramite `netlify-cli` (autenticato con un Personal Access Token), con il flag `--no-build` per evitare che Netlify ricostruisca a sua volta il progetto con impostazioni proprie.
+- **`deploy-server` (CD):** parte solo se il job `server` è andato a buon fine, e chiama il Deploy Hook di Render per innescare il deploy in produzione.
 
-Il deploy automatico nativo via integrazione Git di Netlify e Render è stato disattivato (branch di produzione "locked"/Auto-Deploy off): l'unico modo per pubblicare in produzione è quindi superare la pipeline CI su GitHub Actions.
+**Perché questa architettura e non l'integrazione Git nativa di Netlify/Render:** inizialmente il deploy era affidato al meccanismo automatico di Netlify/Render collegato al repository ma è sorto un problema: quel meccanismo triggera in modo indipendente dal risultato della pipeline CI, quindi anche un push con lint fallito sarebbe comunque arrivato in produzione. Per garantire che il deploy avvenga solo dopo il successo della CI (requisito esplicito della consegna), Netlify è stato scollegato dal repository e il deploy è  stato spostato interamente dentro GitHub Actions, con `needs:` a garantire l'ordine e il gating.
 
 ## Tech stack
 
@@ -57,6 +57,7 @@ Il deploy automatico nativo via integrazione Git di Netlify e Render è stato di
 | React Router DOM | 7 | Routing lato client |
 | Axios | 1 | Chiamate HTTP |
 | Firebase | 12 | Authentication + Firestore |
+| Sentry | — | Error tracking |
 
 **Server**
 
@@ -124,7 +125,9 @@ service cloud.firestore {
 
 **Chiavi NYT e Finnhub:** restano esclusivamente lato server, lette da variabili d'ambiente (`NYT_API_KEY`, `FINNHUB_API_KEY`), mai esposte al client.
 
-**CORS:** il server accetta richieste solo dalle origin elencate nella variabile d'ambiente `CLIENT_URL` (default `http://localhost:5173` in sviluppo; in produzione impostata con l'URL pubblico del client su Netlify). Vedi `server/.env.example`.
+**CORS:** il server accetta richieste solo dalle origin elencate nella variabile d'ambiente `CLIENT_URL` (default `http://localhost:5173` in sviluppo; in produzione impostata con l'URL pubblico del client su Netlify).
+
+**Secrets nella pipeline:** tutte le chiavi (Firebase, NYT, Finnhub, Sentry, token Netlify/Render) sono salvate come GitHub Secrets e mai stampate nei log della pipeline — negli step di build vengono passate come variabili d'ambiente, mai loggate in chiaro.
 
 ## Chiavi API necessarie
 
@@ -132,10 +135,21 @@ Per far funzionare l'app servono account gratuiti su:
 - [NYT Developer API](https://developer.nytimes.com) — per `NYT_API_KEY`
 - [Finnhub](https://finnhub.io) — per `FINNHUB_API_KEY`
 - Un progetto [Firebase](https://firebase.google.com) con Authentication (Google) e Firestore abilitati — per le variabili `VITE_FIREBASE_*`
+- Un progetto [Sentry](https://sentry.io) — per `VITE_SENTRY_DSN`
+
+## Monitoraggio
+
+**Uptime monitoring — UptimeRobot:** due monitor HTTP attivi, uno sul client (`https://nyt-clone-francodesc.netlify.app`) e uno sul server (`https://nyt-clone-server.onrender.com`), con controllo ogni 5 minuti. Quando un monitor rileva un'interruzione invia una email di notifica; un'altra email arriva quando il servizio torna disponibile.
+
+Come interpretare gli alert: un alert "Down" sul server puo essere un falso positivo dovuto al cold start del piano gratuito Render (il servizio si "addormenta" dopo inattività e la prima richiesta può impiegare fino a 50 secondi) — prima di considerarlo un'interruzione reale, verificare aprendo l'URL direttamente e attendendo la risposta. Se il monitor segnala "Down" ripetutamente su controlli consecutivi (quindi oltre il tempo di cold start), è un'interruzione reale: controllare i log del servizio interessato (Render → Logs, oppure Netlify → Deploys) per capire la causa.
+
+**Error tracking — Sentry:** il client (`nyt-clone-client` su Sentry) invia automaticamente ogni errore JavaScript non gestito che si verifica nel browser dell'utente. Ogni evento riporta stack trace, browser/sistema operativo, URL della pagina e breadcrumb delle azioni precedenti l'errore. È stato configurato un alert che notifica via email sulla creazione di una nuova issue.
+
+Come interpretare gli alert: alla ricezione di un'email da Sentry, aprire l'issue collegata e leggere lo stack trace per individuare il file e la riga responsabili; controllare "Breadcrumbs" per capire la sequenza di azioni dell'utente che ha portato all'errore. Una volta corretto il bug e ridistribuito il fix, l'issue va marcata come "Resolved"; se invece non è un problema reale (es. errore causato da un'estensione del browser dell'utente), va marcata come "Ignored".
 
 ## Note e limiti noti
 
-Il piano gratuito di Render "addormenta" il servizio dopo un periodo di inattività: la prima richiesta dopo un po' di inattività può richiedere 50+ secondi prima di ricevere risposta.
+Il piano gratuito di Render "addormenta" il servizio dopo un periodo di inattività: la prima richiesta dopo un po' di inattività può richiedere 50+ secondi prima di ricevere risposta (il monitor UptimeRobot, controllando ogni 5 minuti, ha anche l'effetto collaterale di mantenere il servizio sveglio più spesso).
 
 ## Comandi Docker usati
 

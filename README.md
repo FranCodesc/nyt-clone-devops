@@ -139,17 +139,17 @@ Per far funzionare l'app servono account gratuiti su:
 
 ## Monitoraggio
 
-**Uptime monitoring — UptimeRobot:** due monitor HTTP attivi, uno sul client (`https://nyt-clone-francodesc.netlify.app`) e uno sul server (`https://nyt-clone-server.onrender.com`), con controllo ogni 5 minuti. Quando un monitor rileva un'interruzione invia una email di notifica; un'altra email arriva quando il servizio torna disponibile.
+**Uptime monitoring — UptimeRobot:** due monitor HTTP configurati, uno sul client (`https://nyt-clone-francodesc.netlify.app`) e uno sul server (`https://nyt-clone-server.onrender.com`), con controllo ogni 5 minuti. Quando un monitor rileva un'interruzione invia una email di notifica; un'altra email arriva quando il servizio torna disponibile. Fuori dai periodi di valutazione i monitor sono in pausa, per non consumare le ore mensili del piano gratuito di Render.
 
 Come interpretare gli alert: un alert "Down" sul server puo essere un falso positivo dovuto al cold start del piano gratuito Render (il servizio si "addormenta" dopo inattività e la prima richiesta può impiegare fino a 50 secondi) — prima di considerarlo un'interruzione reale, verificare aprendo l'URL direttamente e attendendo la risposta. Se il monitor segnala "Down" ripetutamente su controlli consecutivi (quindi oltre il tempo di cold start), è un'interruzione reale: controllare i log del servizio interessato (Render → Logs, oppure Netlify → Deploys) per capire la causa.
 
-**Error tracking — Sentry:** il client (`nyt-clone-client` su Sentry) invia automaticamente ogni errore JavaScript non gestito che si verifica nel browser dell'utente. Ogni evento riporta stack trace, browser/sistema operativo, URL della pagina e breadcrumb delle azioni precedenti l'errore. È stato configurato un alert che notifica via email sulla creazione di una nuova issue.
+**Error tracking — Sentry:** il client (`nyt-clone-client` su Sentry) invia automaticamente ogni errore JavaScript non gestito che si verifica nel browser dell'utente. Ogni evento riporta stack trace, browser/sistema operativo, URL della pagina e breadcrumb delle azioni precedenti l'errore. È configurato un alert via email per le issue ad alta priorità: nuove, ricorrenti o in peggioramento.
 
 Come interpretare gli alert: alla ricezione di un'email da Sentry, aprire l'issue collegata e leggere lo stack trace per individuare il file e la riga responsabili; controllare "Breadcrumbs" per capire la sequenza di azioni dell'utente che ha portato all'errore. Una volta corretto il bug e ridistribuito il fix, l'issue va marcata come "Resolved"; se invece non è un problema reale (es. errore causato da un'estensione del browser dell'utente), va marcata come "Ignored".
 
 ## Note e limiti noti
 
-Il piano gratuito di Render "addormenta" il servizio dopo un periodo di inattività: la prima richiesta dopo un po' di inattività può richiedere 50+ secondi prima di ricevere risposta (il monitor UptimeRobot, controllando ogni 5 minuti, ha anche l'effetto collaterale di mantenere il servizio sveglio più spesso).
+Il piano gratuito di Render "addormenta" il servizio dopo un periodo di inattività: la prima richiesta dopo un po' di inattività può richiedere 50+ secondi prima di ricevere risposta (quando è attivo, il monitor UptimeRobot controlla ogni 5 minuti e ha anche l'effetto collaterale di mantenere il servizio sveglio).
 
 ## Comandi Docker usati
 
